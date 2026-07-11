@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bytebank-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-bytebank}
+      POSTGRES_USER: ${DB_USER:-bytebank}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-bytebank}
+    ports:
+      - "5432:5432"
+    volumes:
+      - bytebank_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bytebank} -d ${DB_NAME:-bytebank}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bytebank-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bytebank-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-bytebank}
+      DB_USER: ${DB_USER:-bytebank}
+      DB_PASSWORD: ${DB_PASSWORD:-bytebank}
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-please-use-256-bits-minimum}
+      CORS_ALLOWED_ORIGINS: http://localhost:4200
+      ADMIN_BOOTSTRAP_ENABLED: ${ADMIN_BOOTSTRAP_ENABLED:-true}
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-admin@bytebank.com}
+      ADMIN_BOOTSTRAP_SENHA: ${ADMIN_BOOTSTRAP_SENHA:-admin12345}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bytebank-net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bytebank-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bytebank.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - bytebank-net
+
+networks:
+  bytebank-net:
+    driver: bridge
+
+volumes:
+  bytebank_pgdata:
+  pgadmin_data:

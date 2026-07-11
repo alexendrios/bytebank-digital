@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    clean-disabled: false
+
+app:
+  admin-bootstrap:
+    enabled: false
+
+logging:
+  level:
+    com.bytebank: INFO
+    org.hibernate.SQL: WARN
+    org.testcontainers: WARN

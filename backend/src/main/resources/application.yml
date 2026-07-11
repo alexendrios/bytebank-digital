@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: bytebank-digital
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  jwt:
+    secret: ${JWT_SECRET:change-this-secret-in-production-please-use-256-bits-minimum}
+    access-token-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}      # 15 minutos
+    refresh-token-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000} # 7 dias
+  admin-bootstrap:
+    enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
+    nome: ${ADMIN_BOOTSTRAP_NOME:Administrador}
+    email: ${ADMIN_BOOTSTRAP_EMAIL:admin@bytebank.com}
+    senha: ${ADMIN_BOOTSTRAP_SENHA:admin12345}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus

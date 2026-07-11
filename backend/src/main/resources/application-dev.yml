@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bytebank}
+    username: ${DB_USER:bytebank}
+    password: ${DB_PASSWORD:bytebank}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.bytebank: DEBUG
+    org.hibernate.SQL: DEBUG
