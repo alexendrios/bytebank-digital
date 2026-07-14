@@ -38,6 +38,20 @@ http://localhost:8080/api/swagger-ui.html
 mvn clean test
 ```
 
+### Testes de API com KarateDSL
+
+A suíte de testes de API também pode ser executada isoladamente com:
+
+```bash
+mvn -Dtest=KarateRunner test
+```
+
+Essa execução cobre cenários de autenticação, cadastro de contas, depósito, saque, transferência, extrato e validações de exceções, usando o backend real com Testcontainers. O relatório HTML é gerado em:
+
+```text
+target/karate-reports/karate-summary.html
+```
+
 > Os testes de integração usam **Testcontainers**, então o Docker precisa estar em execução mesmo para rodar `mvn test` localmente.
 
 ## Profiles disponíveis
@@ -61,6 +75,7 @@ Ver `docs/06-backend.md` e o `README.md` principal do repositório para o detalh
 - [x] Extrato / movimentações (paginado)
 - [x] Testes unitários (Strategy, Factory, JwtService, Services com Mockito)
 - [x] Testes de integração (Auth, Contas/Operações, RBAC) com Testcontainers
+- [x] Testes de API end-to-end com KarateDSL para fluxos de autenticação e operações bancárias
 - [ ] Frontend Angular
 - [ ] Módulos avançados: PIX, cartões, Kafka, Redis, WebSockets, Prometheus/Grafana
 
@@ -72,11 +87,17 @@ src/test/java/com/bytebank/
 ├── factory/               # OperacaoFactoryTest
 ├── security/              # JwtServiceTest
 ├── service/                # AuthServiceTest, UsuarioServiceTest, ContaServiceTest, BancoFacadeTest (Mockito)
-└── integration/
-    ├── AbstractIntegrationTest.java       # Base com Testcontainers (PostgreSQL real)
-    ├── AuthIntegrationTest.java           # register/login/refresh-token ponta a ponta
-    ├── ContaOperacoesIntegrationTest.java # depósito/saque/transferência/extrato + ownership
-    └── UsuarioRbacIntegrationTest.java    # RBAC: /usuarios só ADMIN
+├── integration/           # Testes de integração com Testcontainers
+│   ├── AbstractIntegrationTest.java
+│   ├── AuthIntegrationTest.java
+│   ├── ContaOperacoesIntegrationTest.java
+│   └── UsuarioRbacIntegrationTest.java
+└── karate/
+    └── KarateRunner.java  # Runner das suítes KarateDSL
+
+src/test/resources/karate/
+├── auth.feature          # Fluxos de autenticação e autorização
+└── operacoes.feature     # Depósito, saque, transferência, extrato e exceções
 ```
 
 ## Testando a API manualmente

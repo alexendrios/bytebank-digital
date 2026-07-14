@@ -6,7 +6,7 @@ spring:
 
 app:
   admin-bootstrap:
-    enabled: false
+    enabled: true
 
 logging:
   level:

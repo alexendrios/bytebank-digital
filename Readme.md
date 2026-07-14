@@ -229,6 +229,7 @@ backend/src/main/java/com/bytebank/
 
 - **Unitários:** regras de negócio das camadas `Service` validadas isoladamente com **Mockito**.
 - **Integração:** `Controller` e `Repository` testados de ponta a ponta com **Testcontainers**, subindo uma instância real e isolada do PostgreSQL em Docker durante o build.
+- **API end-to-end:** a suíte de testes em **KarateDSL** cobre autenticação, criação de contas, depósito, saque, transferência, extrato e cenários de exceção contra a API real do backend.
 
 ---
 
