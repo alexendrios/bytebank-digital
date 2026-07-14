@@ -36,13 +36,15 @@ class UsuarioRbacIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        Usuario admin = usuarioRepository.save(Usuario.builder()
-                .nome("Admin").email("admin@bytebank.com")
-                .senha(passwordEncoder.encode("senha1234")).perfil(Perfil.ADMIN).build());
+        Usuario admin = usuarioRepository.findByEmail("admin@bytebank.com")
+                .orElseGet(() -> usuarioRepository.save(Usuario.builder()
+                        .nome("Admin").email("admin@bytebank.com")
+                        .senha(passwordEncoder.encode("senha1234")).perfil(Perfil.ADMIN).build()));
 
-        Usuario cliente = usuarioRepository.save(Usuario.builder()
-                .nome("Cliente").email("cliente@bytebank.com")
-                .senha(passwordEncoder.encode("senha1234")).perfil(Perfil.CLIENTE).build());
+        Usuario cliente = usuarioRepository.findByEmail("cliente@bytebank.com")
+                .orElseGet(() -> usuarioRepository.save(Usuario.builder()
+                        .nome("Cliente").email("cliente@bytebank.com")
+                        .senha(passwordEncoder.encode("senha1234")).perfil(Perfil.CLIENTE).build()));
 
         tokenAdmin = jwtService.generateAccessToken(admin);
         tokenCliente = jwtService.generateAccessToken(cliente);
