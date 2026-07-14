@@ -70,16 +70,14 @@ jobs:
         if: always()
         run: |
           echo "Arquivos XML de teste encontrados:"
-          find backend/target -type f \( -name "TEST-*.xml" -o -name "*.xml" \) | sort || true
+          find backend/target/surefire-reports -type f -name "TEST-*.xml" | sort || true
 
       - name: Publicar relatório de testes
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Resultado dos Testes (JUnit)
-          path: |
-            backend/target/surefire-reports/**/*.xml
-            backend/target/failsafe-reports/**/*.xml
+          path: backend/target/surefire-reports/TEST-*.xml
           reporter: java-junit
           fail-on-error: false
 
