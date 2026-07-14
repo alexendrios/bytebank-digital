@@ -73,8 +73,18 @@ jobs:
           find backend/target/surefire-reports -type f -name "TEST-*.xml" | sort || true
 
       - name: Publicar relatório de testes
-        uses: dorny/test-reporter@v1
         if: always()
+        id: test-report
+        run: |
+          if find backend/target/surefire-reports -type f -name "TEST-*.xml" | grep -q .; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enviar relatório de testes
+        if: always() && steps.test-report.outputs.found == 'true'
+        uses: dorny/test-reporter@v1
         with:
           name: Resultado dos Testes (JUnit)
           path: backend/target/surefire-reports/TEST-*.xml
