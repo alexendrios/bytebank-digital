@@ -12,6 +12,8 @@ import com.bytebank.security.JwtService;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,9 +21,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    private static final int MAX_TENTATIVAS_FALHAS = 5;
+    private static final long BLOQUEIO_MINUTOS = 15;
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -50,19 +57,50 @@ public class AuthService {
         );
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.email(), request.senha())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.email(), request.senha())
+            );
+        } catch (BadCredentialsException ex) {
+            // Credenciais erradas: soma uma tentativa falha e, se atingir o
+            // limite, bloqueia a conta temporariamente. Não revela ao
+            // chamador se o e-mail existe ou não (a exceção original é
+            // relançada tal como veio do AuthenticationManager).
+            registrarTentativaFalha(request.email());
+            throw ex;
+        } catch (LockedException ex) {
+            // Conta já bloqueada por tentativas anteriores: apenas propaga,
+            // sem contar mais uma tentativa nem estender o bloqueio.
+            throw ex;
+        }
 
         Usuario usuario = usuarioRepository.findByEmail(request.email())
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+        if (usuario.getTentativasFalhas() > 0 || usuario.getBloqueadoAte() != null) {
+            usuario.setTentativasFalhas(0);
+            usuario.setBloqueadoAte(null);
+            usuarioRepository.save(usuario);
+        }
 
         return new AuthResponse(
                 jwtService.generateAccessToken(usuario),
                 jwtService.generateRefreshToken(usuario),
                 "Bearer"
         );
+    }
+
+    private void registrarTentativaFalha(String email) {
+        usuarioRepository.findByEmail(email).ifPresent(usuario -> {
+            int tentativas = usuario.getTentativasFalhas() + 1;
+            usuario.setTentativasFalhas(tentativas);
+            if (tentativas >= MAX_TENTATIVAS_FALHAS) {
+                usuario.setBloqueadoAte(LocalDateTime.now().plusMinutes(BLOQUEIO_MINUTOS));
+            }
+            usuarioRepository.save(usuario);
+        });
     }
 
     public AuthResponse refresh(RefreshTokenRequest request) {

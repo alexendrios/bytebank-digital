@@ -7,6 +7,7 @@ import com.bytebank.entity.Conta;
 import com.bytebank.entity.Movimentacao;
 import com.bytebank.entity.TipoMovimentacao;
 import com.bytebank.entity.Transferencia;
+import com.bytebank.exception.BusinessException;
 import com.bytebank.factory.OperacaoFactory;
 import com.bytebank.mapper.ContaMapper;
 import com.bytebank.mapper.MovimentacaoMapper;
@@ -57,8 +58,11 @@ public class BancoFacade {
     }
 
     private ContaResponse aplicarOperacaoSimples(UUID contaId, BigDecimal valor, TipoMovimentacao tipo) {
-        Conta conta = contaService.buscarEntidadePorId(contaId);
-        contaService.validarPropriedade(conta);
+        // Valida propriedade primeiro com uma leitura simples (sem lock);
+        // a leitura que efetivamente sustenta a alteração de saldo é
+        // sempre a com lock pessimista, feita a seguir.
+        contaService.validarPropriedade(contaService.buscarEntidadePorId(contaId));
+        Conta conta = contaService.buscarEntidadeParaAtualizacao(contaId);
 
         OperacaoStrategy strategy = operacaoFactory.resolver(tipo);
         Movimentacao movimentacao = strategy.executar(conta, valor);
@@ -71,12 +75,32 @@ public class BancoFacade {
 
     @Transactional
     public TransferenciaResponse transferir(UUID contaOrigemId, UUID contaDestinoId, BigDecimal valor) {
-        Conta origem = contaService.buscarEntidadePorId(contaOrigemId);
-        contaService.validarPropriedade(origem);
+        if (contaOrigemId.equals(contaDestinoId)) {
+            throw new BusinessException("Conta de origem e destino não podem ser a mesma");
+        }
 
-        Conta destino = contaService.buscarEntidadePorId(contaDestinoId);
-        // Nota: a conta de destino não precisa pertencer ao usuário logado —
-        // faz parte do propósito de uma transferência enviar saldo a terceiros.
+        // Valida propriedade da conta de origem com uma leitura simples,
+        // sem lock (a conta de destino não precisa pertencer ao usuário
+        // logado — faz parte do propósito de uma transferência enviar
+        // saldo a terceiros).
+        contaService.validarPropriedade(contaService.buscarEntidadePorId(contaOrigemId));
+
+        // Trava as duas contas SEMPRE na mesma ordem (menor UUID primeiro),
+        // independentemente de quem é origem/destino. Se duas transferências
+        // concorrentes ocorrerem em direções opostas (A→B e B→A ao mesmo
+        // tempo) e cada uma travasse "origem antes de destino", teríamos
+        // deadlock (uma trava A e espera B, a outra trava B e espera A).
+        // Com ordem canônica, ambas disputam a mesma primeira trava e uma
+        // delas simplesmente espera a outra terminar.
+        boolean origemPrimeiro = contaOrigemId.compareTo(contaDestinoId) < 0;
+        UUID primeiroId = origemPrimeiro ? contaOrigemId : contaDestinoId;
+        UUID segundoId = origemPrimeiro ? contaDestinoId : contaOrigemId;
+
+        Conta primeira = contaService.buscarEntidadeParaAtualizacao(primeiroId);
+        Conta segunda = contaService.buscarEntidadeParaAtualizacao(segundoId);
+
+        Conta origem = origemPrimeiro ? primeira : segunda;
+        Conta destino = origemPrimeiro ? segunda : primeira;
 
         List<Movimentacao> movimentacoes = transferenciaStrategy.executar(origem, destino, valor);
 

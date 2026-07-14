@@ -51,6 +51,22 @@ public class Usuario implements UserDetails {
     @Column(name = "data_cadastro", nullable = false, updatable = false)
     private LocalDateTime dataCadastro;
 
+    /**
+     * Contador de tentativas de login malsucedidas consecutivas.
+     * Zerado a cada login bem-sucedido. Usado junto com
+     * {@link #bloqueadoAte} para proteção contra força bruta.
+     */
+    @Column(name = "tentativas_falhas", nullable = false)
+    @Builder.Default
+    private int tentativasFalhas = 0;
+
+    /**
+     * Se preenchido e no futuro, o usuário está temporariamente
+     * bloqueado e não pode autenticar (ver {@link #isAccountNonLocked()}).
+     */
+    @Column(name = "bloqueado_ate")
+    private LocalDateTime bloqueadoAte;
+
     @PrePersist
     void prePersist() {
         if (dataCadastro == null) {
@@ -82,7 +98,7 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return bloqueadoAte == null || bloqueadoAte.isBefore(LocalDateTime.now());
     }
 
     @Override

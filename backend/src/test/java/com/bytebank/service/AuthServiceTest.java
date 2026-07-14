@@ -18,8 +18,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,6 +101,61 @@ class AuthServiceTest {
         verify(authenticationManager).authenticate(any());
         assertThat(response.accessToken()).isEqualTo("access-token");
         assertThat(response.refreshToken()).isEqualTo("refresh-token");
+    }
+
+    @Test
+    @DisplayName("login deve incrementar tentativasFalhas quando as credenciais forem inválidas")
+    void deveIncrementarTentativasFalhasEmCredencialInvalida() {
+        LoginRequest request = new LoginRequest("maria@bytebank.com", "senha-errada");
+        Usuario usuario = Usuario.builder().email("maria@bytebank.com").senha("hash")
+                .perfil(Perfil.CLIENTE).tentativasFalhas(2).build();
+
+        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Credenciais inválidas"));
+        when(usuarioRepository.findByEmail("maria@bytebank.com")).thenReturn(Optional.of(usuario));
+
+        assertThatThrownBy(() -> authService.login(request)).isInstanceOf(BadCredentialsException.class);
+
+        ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captor.capture());
+        assertThat(captor.getValue().getTentativasFalhas()).isEqualTo(3);
+        assertThat(captor.getValue().getBloqueadoAte()).isNull();
+    }
+
+    @Test
+    @DisplayName("login deve bloquear temporariamente a conta ao atingir o limite de tentativas falhas")
+    void deveBloquearContaAoAtingirLimiteDeTentativas() {
+        LoginRequest request = new LoginRequest("maria@bytebank.com", "senha-errada");
+        Usuario usuario = Usuario.builder().email("maria@bytebank.com").senha("hash")
+                .perfil(Perfil.CLIENTE).tentativasFalhas(4).build();
+
+        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("Credenciais inválidas"));
+        when(usuarioRepository.findByEmail("maria@bytebank.com")).thenReturn(Optional.of(usuario));
+
+        assertThatThrownBy(() -> authService.login(request)).isInstanceOf(BadCredentialsException.class);
+
+        ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captor.capture());
+        assertThat(captor.getValue().getTentativasFalhas()).isEqualTo(5);
+        assertThat(captor.getValue().getBloqueadoAte()).isAfter(LocalDateTime.now());
+    }
+
+    @Test
+    @DisplayName("login bem-sucedido deve zerar tentativasFalhas anteriores")
+    void deveZerarTentativasFalhasAposLoginComSucesso() {
+        LoginRequest request = new LoginRequest("maria@bytebank.com", "senha1234");
+        Usuario usuario = Usuario.builder().email("maria@bytebank.com").senha("hash")
+                .perfil(Perfil.CLIENTE).tentativasFalhas(3).build();
+
+        when(usuarioRepository.findByEmail("maria@bytebank.com")).thenReturn(Optional.of(usuario));
+        when(jwtService.generateAccessToken(usuario)).thenReturn("access-token");
+        when(jwtService.generateRefreshToken(usuario)).thenReturn("refresh-token");
+
+        authService.login(request);
+
+        ArgumentCaptor<Usuario> captor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(captor.capture());
+        assertThat(captor.getValue().getTentativasFalhas()).isZero();
+        assertThat(captor.getValue().getBloqueadoAte()).isNull();
     }
 
     @Test

@@ -56,6 +56,18 @@ public class ContaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada: " + id));
     }
 
+    /**
+     * Busca a conta com lock pessimista ({@code SELECT ... FOR UPDATE}).
+     * Deve ser usada obrigatoriamente por qualquer operação que vá
+     * modificar o saldo (depósito, saque, transferência), sempre dentro
+     * de uma transação já aberta pelo chamador — o lock só é mantido
+     * até o commit/rollback da transação corrente.
+     */
+    public Conta buscarEntidadeParaAtualizacao(UUID id) {
+        return contaRepository.buscarParaAtualizacao(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conta não encontrada: " + id));
+    }
+
     @Transactional
     public ContaResponse criar(ContaRequest request) {
         Usuario titular = usuarioService.buscarEntidadePorId(request.usuarioId());

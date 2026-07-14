@@ -14,6 +14,15 @@ import java.util.UUID;
 
 /**
  * Conta bancária vinculada a um {@link Usuario}.
+ *
+ * <p>Concorrência: toda operação que altera {@code saldo} deve buscar a
+ * conta através de {@code ContaRepository#buscarParaAtualizacao} (lock
+ * pessimista {@code SELECT ... FOR UPDATE}), que serializa escritores
+ * concorrentes na mesma linha. O campo {@code version} funciona como
+ * segunda camada de proteção (locking otimista): qualquer caminho de
+ * escrita que porventura não passe pelo lock pessimista falha com
+ * {@link jakarta.persistence.OptimisticLockException} em vez de perder
+ * silenciosamente uma atualização concorrente.</p>
  */
 @Entity
 @Table(name = "contas")
@@ -44,6 +53,10 @@ public class Conta {
 
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @PrePersist
     void prePersist() {
