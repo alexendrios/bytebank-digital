@@ -17,9 +17,26 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: bytebank_test
+          POSTGRES_USER: bytebank
+          POSTGRES_PASSWORD: bytebank
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U bytebank -d bytebank_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     env:
       TESTCONTAINERS_RYUK_DISABLED: "true"
       MAVEN_OPTS: "-Djava.awt.headless=true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bytebank_test
+      SPRING_DATASOURCE_USERNAME: bytebank
+      SPRING_DATASOURCE_PASSWORD: bytebank
 
     defaults:
       run:
