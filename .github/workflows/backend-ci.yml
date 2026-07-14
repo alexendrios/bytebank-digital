@@ -17,6 +17,9 @@ jobs:
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      MAVEN_OPTS: "-Djava.awt.headless=true"
 
     defaults:
       run:
@@ -36,17 +39,30 @@ jobs:
       - name: Build (compile)
         run: mvn -B -ntp clean compile
 
+      - name: Verificar Docker/Testcontainers
+        run: |
+          docker --version
+          docker info
+
       # O runner ubuntu-latest já vem com Docker instalado e em execução,
       # necessário para os testes de integração com Testcontainers.
-      - name: Rodar testes (unitários + integração)
+      - name: Rodar testes (unitários + integração + API)
         run: mvn -B -ntp test
+
+      - name: Listar relatórios gerados
+        if: always()
+        run: |
+          echo "Arquivos XML de teste encontrados:"
+          find backend/target -type f \( -name "TEST-*.xml" -o -name "*.xml" \) | sort || true
 
       - name: Publicar relatório de testes
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: Resultado dos Testes (JUnit)
-          path: 'backend/target/surefire-reports/*.xml'
+          path: |
+            backend/target/surefire-reports/**/*.xml
+            backend/target/failsafe-reports/**/*.xml
           reporter: java-junit
           fail-on-error: false
 
