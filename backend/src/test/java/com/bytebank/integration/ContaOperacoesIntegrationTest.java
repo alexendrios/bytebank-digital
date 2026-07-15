@@ -77,10 +77,25 @@ class ContaOperacoesIntegrationTest extends AbstractIntegrationTest {
 
     @AfterEach
     void limpar() {
+
         movimentacaoRepository.deleteAll();
         transferenciaRepository.deleteAll();
-        contaRepository.deleteAll();
-        usuarioRepository.deleteAll();
+
+        if (contaA != null) {
+            contaRepository.deleteById(contaA.getId());
+        }
+
+        if (contaB != null) {
+            contaRepository.deleteById(contaB.getId());
+        }
+
+        if (clienteA != null) {
+            usuarioRepository.deleteById(clienteA.getId());
+        }
+
+        if (clienteB != null) {
+            usuarioRepository.deleteById(clienteB.getId());
+        }
     }
 
     private HttpHeaders headersCom(String token) {

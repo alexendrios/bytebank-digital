@@ -14,38 +14,42 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Testes de integração ponta a ponta do fluxo de autenticação, exercitando
- * Controller → Service → Security → Repository contra um PostgreSQL real.
- */
 class AuthIntegrationTest extends AbstractIntegrationTest {
+
+    private static final String EMAIL = "maria@bytebank.com";
+    private static final String SENHA = "senha1234";
 
     @Autowired
     private UsuarioRepository usuarioRepository;
 
     @AfterEach
     void limpar() {
-        usuarioRepository.deleteAll();
+        usuarioRepository.findByEmail(EMAIL)
+                .ifPresent(usuarioRepository::delete);
     }
 
     @Test
     @DisplayName("POST /auth/register deve criar usuário e retornar tokens")
     void deveRegistrarNovoUsuario() {
-        RegisterRequest request = new RegisterRequest("Maria Silva", "maria@bytebank.com", "senha1234");
 
-        ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/auth/register", request, AuthResponse.class);
+        RegisterRequest request = new RegisterRequest("Maria Silva", EMAIL, SENHA);
+
+        ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/auth/register", request,
+                AuthResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().accessToken()).isNotBlank();
         assertThat(response.getBody().refreshToken()).isNotBlank();
-        assertThat(usuarioRepository.existsByEmail("maria@bytebank.com")).isTrue();
+        assertThat(usuarioRepository.existsByEmail(EMAIL)).isTrue();
     }
 
     @Test
     @DisplayName("POST /auth/register com e-mail duplicado deve retornar 409")
     void deveRetornarConflitoParaEmailDuplicado() {
-        RegisterRequest request = new RegisterRequest("Maria Silva", "maria@bytebank.com", "senha1234");
+
+        RegisterRequest request = new RegisterRequest("Maria Silva", EMAIL, SENHA);
+
         restTemplate.postForEntity("/auth/register", request, AuthResponse.class);
 
         ResponseEntity<String> response = restTemplate.postForEntity("/auth/register", request, String.class);
@@ -56,11 +60,15 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /auth/login com credenciais válidas deve retornar tokens")
     void deveLogarComCredenciaisValidas() {
-        RegisterRequest registerRequest = new RegisterRequest("Maria Silva", "maria@bytebank.com", "senha1234");
+
+        RegisterRequest registerRequest = new RegisterRequest("Maria Silva", EMAIL, SENHA);
+
         restTemplate.postForEntity("/auth/register", registerRequest, AuthResponse.class);
 
-        LoginRequest loginRequest = new LoginRequest("maria@bytebank.com", "senha1234");
-        ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/auth/login", loginRequest, AuthResponse.class);
+        LoginRequest loginRequest = new LoginRequest(EMAIL, SENHA);
+
+        ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/auth/login", loginRequest,
+                AuthResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
@@ -70,10 +78,13 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /auth/login com senha incorreta deve retornar 401")
     void deveRetornarUnauthorizedParaSenhaIncorreta() {
-        RegisterRequest registerRequest = new RegisterRequest("Maria Silva", "maria@bytebank.com", "senha1234");
+
+        RegisterRequest registerRequest = new RegisterRequest("Maria Silva", EMAIL, SENHA);
+
         restTemplate.postForEntity("/auth/register", registerRequest, AuthResponse.class);
 
-        LoginRequest loginRequest = new LoginRequest("maria@bytebank.com", "senha-errada");
+        LoginRequest loginRequest = new LoginRequest(EMAIL, "senha-errada");
+
         ResponseEntity<String> response = restTemplate.postForEntity("/auth/login", loginRequest, String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
@@ -82,19 +93,29 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("POST /auth/refresh-token deve emitir novos tokens a partir de um refresh token válido")
     void deveRenovarTokenComRefreshTokenValido() {
-        RegisterRequest registerRequest = new RegisterRequest("Maria Silva", "maria@bytebank.com", "senha1234");
-        AuthResponse registerResponse = restTemplate.postForEntity("/auth/register", registerRequest, AuthResponse.class).getBody();
+
+        RegisterRequest registerRequest = new RegisterRequest("Maria Silva", EMAIL, SENHA);
+
+        AuthResponse registerResponse = restTemplate
+                .postForEntity("/auth/register", registerRequest, AuthResponse.class)
+                .getBody();
+
+        assertThat(registerResponse).isNotNull();
 
         RefreshTokenRequest refreshRequest = new RefreshTokenRequest(registerResponse.refreshToken());
-        ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/auth/refresh-token", refreshRequest, AuthResponse.class);
+
+        ResponseEntity<AuthResponse> response = restTemplate.postForEntity("/auth/refresh-token", refreshRequest,
+                AuthResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().accessToken()).isNotBlank();
     }
 
     @Test
     @DisplayName("Acessar endpoint protegido sem token deve retornar 401")
     void deveRetornarUnauthorizedSemToken() {
+
         ResponseEntity<String> response = restTemplate.getForEntity("/contas", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
