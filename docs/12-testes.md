@@ -61,3 +61,51 @@ mvn clean test
 ## CI
 
 Ver `13-devops.md` — os mesmos 49 testes rodam automaticamente a cada push/PR via GitHub Actions, em um runner que já vem com Docker disponível.
+
+## Testes E2E de UI (Cypress + BDD)
+
+Além da pirâmide de testes do backend acima, o `frontend/` conta com uma suíte de
+testes end-to-end de interface em **Cypress**, escrita em estilo **BDD** com
+**Cucumber/Gherkin** (via `@badeball/cypress-cucumber-preprocessor`), cobrindo
+as três operações financeiras disponíveis ao perfil CLIENTE: depósito, saque
+e transferência — incluindo um cenário de regressão específico para garantir
+que as três operações continuem visíveis no menu lateral do cliente.
+
+| Arquivo `.feature` | Cenários cobertos |
+|---|---|
+| `deposito.feature` | Depósito com valor válido; bloqueio de valor zerado no formulário |
+| `saque.feature` | Saque com saldo suficiente; rejeição por saldo insuficiente |
+| `transferencia.feature` | Transferência entre contas de titulares diferentes; rejeição por saldo insuficiente |
+| `navegacao-cliente.feature` | Regressão: o menu lateral do cliente exibe "Depositar/Sacar", "Transferir" e "Meu perfil" |
+
+### Estratégia de massa de dados
+
+Cada cenário cria seu próprio usuário CLIENTE (e-mail único por execução),
+conta e saldo inicial diretamente via chamadas à API (`cy.request`), usando o
+usuário ADMIN de bootstrap (`admin@bytebank.com`, configurável em
+`app.admin-bootstrap.*`) apenas para localizar o `id` do novo usuário e abrir
+a conta em nome dele — só a ação sendo testada (depositar, sacar, transferir)
+passa pela UI de fato. Isso mantém os testes isolados entre si e independentes
+de dados pré-existentes no banco.
+
+### Rodando os testes E2E
+
+```bash
+cd frontend
+npm install
+npm run start        # sobe o Angular em http://localhost:4200
+```
+
+Em outro terminal, com o backend também no ar (`docker-compose up` a partir da
+raiz do projeto, ou `mvn spring-boot:run` em `backend/`):
+
+```bash
+cd frontend
+npm run e2e:open     # abre o Cypress Test Runner (modo interativo)
+# ou
+npm run e2e:run      # roda todos os .feature em modo headless
+```
+
+> Os testes assumem a API em `http://localhost:8080/api` e o frontend em
+> `http://localhost:4200` (ver `cypress.config.ts`). Ajuste `env.apiUrl` e
+> `e2e.baseUrl` se o seu ambiente local usar outras portas.

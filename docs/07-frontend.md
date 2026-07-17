@@ -1,6 +1,14 @@
 # 07. Frontend
 
-> ⏳ **Status: planejado, ainda não implementado.** Este documento descreve o desenho pretendido para o frontend, servindo de especificação para quando a implementação começar.
+> ✅ **Status: implementado**, seguindo exatamente a especificação descrita abaixo. O código vive em `frontend/`.
+>
+> Uma decisão de implementação que não estava (e não podia estar) prevista neste
+> documento original: o JWT emitido pelo backend não carrega claim de perfil, e
+> não existe endpoint `/auth/me`. Por isso o `AuthService` do frontend infere o
+> perfil logo após o login tentando `GET /usuarios` (200 → ADMIN, 403 → CLIENTE)
+> e guarda o resultado no `SessionService`. É um trade-off pragmático dado o que
+> a API oferece hoje — ver comentários em `core/services/session.service.ts` e
+> `services/auth.service.ts`.
 
 ## Stack planejada
 

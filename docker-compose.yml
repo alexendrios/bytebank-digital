@@ -45,6 +45,19 @@ services:
     networks:
       - bytebank-net
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bytebank-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - bytebank-net
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: bytebank-pgadmin
