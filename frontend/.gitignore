@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.angular/
+*.log
+.env
+.DS_Store
+
+# Cypress
+cypress/videos
+cypress/screenshots
+cypress/downloads

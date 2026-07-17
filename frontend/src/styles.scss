@@ -1,0 +1,199 @@
+/*
+  ByteBank Digital — Design tokens
+  -------------------------------------------------
+  Paleta: tinta naval (#122036) como base de confiança/seriedade bancária,
+  verde-esmeralda (#0FA968) como cor de "saldo positivo / crescimento",
+  vermelho-terracota (#D64550) reservado exclusivamente para saques e alertas.
+  Tipografia: Space Grotesk para títulos (geométrica, tem presença sem
+  parecer chapada), Inter para texto corrido, e uma pilha monoespaçada
+  para valores monetários — como em um extrato impresso, os números
+  ficam alinhados em colunas tabulares em vez de proporcionais.
+*/
+
+:root {
+  --bb-navy-900: #0d1826;
+  --bb-navy-800: #122036;
+  --bb-navy-700: #1a2c47;
+  --bb-navy-600: #24395a;
+  --bb-navy-100: #e7ebf2;
+
+  --bb-emerald-600: #0c8a56;
+  --bb-emerald-500: #0fa968;
+  --bb-emerald-100: #e0f5eb;
+
+  --bb-terracotta-600: #b8394a;
+  --bb-terracotta-500: #d64550;
+  --bb-terracotta-100: #fbe6e8;
+
+  --bb-amber-500: #dda448;
+  --bb-amber-100: #faf1e0;
+
+  --bb-bg: #f5f7fb;
+  --bb-surface: #ffffff;
+  --bb-border: #e1e6ee;
+  --bb-text: #1b2434;
+  --bb-text-muted: #5c6b84;
+
+  --bb-radius: 12px;
+  --bb-radius-sm: 8px;
+  --bb-shadow: 0 1px 2px rgba(13, 24, 38, 0.06), 0 8px 24px rgba(13, 24, 38, 0.06);
+
+  --bb-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --bb-font-body: 'Inter', system-ui, sans-serif;
+  --bb-font-mono: 'JetBrains Mono', 'Space Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bb-bg);
+  color: var(--bb-text);
+  font-family: var(--bb-font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .bb-display {
+  font-family: var(--bb-font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--bb-navy-800);
+  margin: 0 0 0.4em;
+}
+
+a {
+  color: var(--bb-navy-700);
+}
+
+/* Valores monetários: sempre em fonte monoespaçada tabular, como um extrato real */
+.bb-money {
+  font-family: var(--bb-font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.bb-money--positive { color: var(--bb-emerald-600); }
+.bb-money--negative { color: var(--bb-terracotta-600); }
+
+/* Layout utilitário */
+.bb-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.bb-page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.bb-page-header__eyebrow {
+  font-family: var(--bb-font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bb-text-muted);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.bb-card {
+  background: var(--bb-surface);
+  border: 1px solid var(--bb-border);
+  border-radius: var(--bb-radius);
+  box-shadow: var(--bb-shadow);
+  padding: 24px;
+}
+
+.bb-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.bb-grid--2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.bb-grid--3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+.bb-empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--bb-text-muted);
+}
+
+.bb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 420px;
+}
+
+.bb-form--wide {
+  max-width: none;
+}
+
+.bb-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.bb-full-width {
+  width: 100%;
+}
+
+.bb-spacer {
+  flex: 1 1 auto;
+}
+
+.bb-muted {
+  color: var(--bb-text-muted);
+}
+
+.bb-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--bb-font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bb-status-chip--deposito { background: var(--bb-emerald-100); color: var(--bb-emerald-600); }
+.bb-status-chip--saque { background: var(--bb-terracotta-100); color: var(--bb-terracotta-600); }
+.bb-status-chip--pix,
+.bb-status-chip--transferencia { background: var(--bb-amber-100); color: #8a6423; }
+.bb-status-chip--admin { background: var(--bb-navy-100); color: var(--bb-navy-700); }
+.bb-status-chip--cliente { background: var(--bb-emerald-100); color: var(--bb-emerald-600); }
+
+/* Snackbars de erro/sucesso */
+.bb-snackbar-error {
+  --mdc-snackbar-container-color: var(--bb-terracotta-600);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+.bb-snackbar-success {
+  --mdc-snackbar-container-color: var(--bb-emerald-600);
+  --mdc-snackbar-supporting-text-color: #fff;
+}
+
+@media (max-width: 640px) {
+  .bb-page {
+    padding: 20px 16px 48px;
+  }
+}
