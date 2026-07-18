@@ -76,8 +76,7 @@ Ver `docs/06-backend.md` e o `README.md` principal do repositório para o detalh
 - [x] Testes unitários (Strategy, Factory, JwtService, Services com Mockito)
 - [x] Testes de integração (Auth, Contas/Operações, RBAC) com Testcontainers
 - [x] Testes de API end-to-end com KarateDSL para fluxos de autenticação e operações bancárias
-- [ ] Frontend Angular
-- [ ] Módulos avançados: PIX, cartões, Kafka, Redis, WebSockets, Prometheus/Grafana
+- [x] Frontend Angular
 
 ## Estrutura de testes
 

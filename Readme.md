@@ -36,14 +36,6 @@
     - [Fluxos Visuais (Telas)](#fluxos-visuais-telas)
   - [🐳 Docker \& Orquestração](#-docker--orquestração)
   - [🔄 Pipeline CI/CD (GitHub Actions)](#-pipeline-cicd-github-actions)
-  - [🚀 Módulos de Negócio Avançados](#-módulos-de-negócio-avançados)
-    - [PIX](#pix)
-    - [Cartão de Crédito e Cartão Virtual](#cartão-de-crédito-e-cartão-virtual)
-  - [🏛️ Infraestrutura Avançada](#️-infraestrutura-avançada)
-    - [Notificações em Tempo Real](#notificações-em-tempo-real)
-    - [Processamento Assíncrono Orientado a Eventos](#processamento-assíncrono-orientado-a-eventos)
-    - [Camada de Cache Distribuído](#camada-de-cache-distribuído)
-  - [📊 Monitoramento e Observabilidade](#-monitoramento-e-observabilidade)
   - [▶️ Como Executar Localmente](#️-como-executar-localmente)
   - [📄 Licença](#-licença)
 
@@ -287,51 +279,8 @@ A cada push nas branches principais, o pipeline executa automaticamente:
 
 ---
 
-## 🚀 Módulos de Negócio Avançados
 
-> Extensões planejadas de escopo, voltadas a aproximar o projeto de um ambiente bancário real.
 
-### PIX
-
-- **Escopo:** simulação de transações PIX.
-- **Funcionamento:** fluxo completo de envio, recebimento e validação de chaves (CPF/CNPJ, e-mail, telefone e chave aleatória).
-
-### Cartão de Crédito e Cartão Virtual
-
-- **Módulo de Crédito:** gerenciamento de limite, fatura e autorização de compras.
-- **Cartões Virtuais:** geração de cartões temporários ou recorrentes para compras online seguras, com regras de expiração e tokenização.
-
----
-
-## 🏛️ Infraestrutura Avançada
-
-### Notificações em Tempo Real
-
-- **Tecnologia:** WebSockets.
-- **Objetivo:** entrega imediata de alertas ao usuário (confirmação de transferências, alertas de segurança, atualizações de saldo) sem necessidade de *polling* constante.
-
-### Processamento Assíncrono Orientado a Eventos
-
-- **Tecnologia:** Apache Kafka.
-- **Objetivo:** desacoplamento de microsserviços e processamento assíncrono de transações pesadas, atuando como *message broker* principal para garantir resiliência e ordem dos eventos financeiros.
-
-### Camada de Cache Distribuído
-
-- **Tecnologia:** Redis.
-- **Objetivo:** otimizar a leitura de dados de alta demanda e baixa mutabilidade, como consultas a extratos frequentes e dados de sessão do usuário.
-
----
-
-## 📊 Monitoramento e Observabilidade
-
-Para garantir saúde, alta disponibilidade e rastreabilidade do ambiente produtivo:
-
-| Ferramenta | Função |
-|---|---|
-| **Prometheus** | Coleta e armazenamento de métricas de séries temporais da aplicação e da infraestrutura |
-| **Grafana** | Dashboards em tempo real para indicadores técnicos (CPU, memória, latência) e de negócio (volume de transações por minuto, taxa de erro do PIX) |
-
----
 
 ## ▶️ Como Executar Localmente
 

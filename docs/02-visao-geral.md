@@ -21,17 +21,6 @@ O ByteBank Digital simula as operações essenciais de um banco digital: abertur
 - **Operações bancárias**: depósito, saque, transferência entre contas.
 - **Extrato**: histórico paginado de movimentações por conta.
 
-### Módulos avançados (planejados, não implementados)
-
-Descritos originalmente na especificação de arquitetura do projeto, ainda não têm código associado:
-
-- **PIX**: simulação de transações via chave (CPF/CNPJ, e-mail, telefone, aleatória).
-- **Cartão de crédito e cartão virtual**: limite, fatura, tokenização.
-- **Notificações em tempo real**: WebSockets para alertas de transação/segurança.
-- **Processamento assíncrono**: Apache Kafka como *message broker* para transações pesadas.
-- **Cache distribuído**: Redis para consultas de extrato de alta frequência.
-- **Observabilidade**: Prometheus + Grafana para métricas técnicas e de negócio.
-
 ### Frontend (planejado, não implementado)
 
 SPA em Angular 20 consumindo a API REST descrita neste documento — ver `07-frontend.md` para o desenho planejado.

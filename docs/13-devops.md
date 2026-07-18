@@ -65,8 +65,4 @@ Ver `.env.example` na raiz do repositório para a lista completa. As principais:
 | `CORS_ALLOWED_ORIGINS` | Origem(ns) permitida(s) para o frontend |
 | `ADMIN_BOOTSTRAP_*` | Credenciais do ADMIN criado automaticamente na primeira subida (ver 09-seguranca.md) |
 
-## Próximos passos de DevOps (não implementados)
 
-- Deploy automatizado (ex.: para um ambiente de staging) após o merge na main.
-- Observabilidade via Prometheus + Grafana (o Actuator já expõe /actuator/prometheus; falta o scraping e os dashboards).
-- Gestão de segredos via um vault dedicado, em vez de variáveis de ambiente simples.
